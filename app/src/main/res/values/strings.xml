@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name" translatable="false">WeatherApp</string>
+
+    <string name="hourly_forecast">Hourly Forecast</string>
+    <string name="daily_forecast">Daily Forecast</string>
+
+    <string name="temp">TEMP</string>
+    <string name="feels_like">FEELS LIKE</string>
+    <string name="uvi">UVI</string>
+    <string name="cloudiness">CLOUDINESS</string>
+    <string name="humidity">HUMIDITY</string>
+    <string name="sunrise">SUNRISE</string>
+    <string name="sunset">SUNSET</string>
+    <string name="wind_speed">WIND SPEED</string>
+    <string name="wind_deg">WIND DEGREE</string>
+    <string name="visibility">VISIBILITY</string>
+    <string name="pressure">PRESSURE</string>
+
+    <string name="degree" translatable="false">°</string>
+    <string name="percent" translatable="false">%</string>
+    <string name="metric" translatable="false">km</string>
+    <string name="imperial" translatable="false">mile</string>
+    <string name="meter_per_sec" translatable="false">m/s</string>
+    <string name="mile_per_hour" translatable="false">mph</string>
+    <string name="hectopascal" translatable="false">hPa</string>
+
+    <string name="unknown" translatable="false">Unknown</string>
+
+    <string name="home_title" translatable="false">Home</string>
+    <string name="setting_title" translatable="false">Settings</string>
+    <string name="error_title" translatable="false">OOOOPS!!!</string>
+
+    <string name="change_unit">Change Unit</string>
+</resources>

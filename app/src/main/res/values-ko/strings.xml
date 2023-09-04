@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">WeatherApp</string>
+
+    <string name="hourly_forecast">시간별 일기예보</string>
+    <string name="daily_forecast">주간 일기예보</string>
+
+    <string name="temp">현재 온도</string>
+    <string name="feels_like">체감 온도</string>
+    <string name="uvi">자외선 지수</string>
+    <string name="cloudiness">구름</string>
+    <string name="humidity">습도</string>
+    <string name="sunrise">일출</string>
+    <string name="sunset">일몰</string>
+    <string name="wind_speed">풍속</string>
+    <string name="wind_deg">풍향</string>
+    <string name="visibility">가시거리</string>
+    <string name="pressure">기압</string>
+
+    <string name="degree" translatable="false">°</string>
+    <string name="percent" translatable="false">%</string>
+    <string name="metric" translatable="false">km</string>
+    <string name="imperial" translatable="false">mile</string>
+    <string name="meter_per_sec" translatable="false">m/s</string>
+    <string name="mile_per_hour" translatable="false">mph</string>
+    <string name="hectopascal" translatable="false">hPa</string>
+
+    <string name="unknown" translatable="false">Unknown</string>
+
+    <string name="home_title" translatable="false">Home</string>
+    <string name="setting_title" translatable="false">Settings</string>
+    <string name="error_title" translatable="false">OOOOPS!!!</string>
+
+    <string name="change_unit">단위 변경</string>
+
+</resources>
