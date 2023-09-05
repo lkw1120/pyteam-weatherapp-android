@@ -68,11 +68,12 @@ class WeatherWidgetReceiver : GlanceAppWidgetReceiver() {
     }
 
     companion object {
-        val icon = stringPreferencesKey("weather_icon")
-        val temp = stringPreferencesKey("weather_temp")
-        val name = stringPreferencesKey("location_name")
-        val max = stringPreferencesKey("today_max")
-        val min = stringPreferencesKey("today_min")
+        val locationName = stringPreferencesKey("location_name")
+        val weatherIcon = stringPreferencesKey("weather_icon")
+        val weatherTemp = stringPreferencesKey("weather_temp")
+        val todayMax = stringPreferencesKey("today_max")
+        val todayMin = stringPreferencesKey("today_min")
+        val description = stringPreferencesKey("description")
 
         private const val UNIQUE_WORK_NAME = "WeatherWidgetWorker"
 

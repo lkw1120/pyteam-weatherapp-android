@@ -70,6 +70,7 @@ class WeatherWorker @AssistedInject constructor(
                 Timber.tag(TAG).d("locationInfo : %s", locationInfo.raw)
 
                 val weatherIcon = weatherInfo.weatherData?.current?.weather?.get(0)?.icon ?: ""
+                val description = weatherInfo.weatherData?.current?.weather?.get(0)?.description?:""
                 val weatherTemp =
                     weatherInfo.weatherData?.current?.temp?.toInt()?.toString() ?: "--"
 
@@ -93,11 +94,12 @@ class WeatherWorker @AssistedInject constructor(
                         it
                     ) { pref ->
                         pref.toMutablePreferences().apply {
-                            this[WeatherWidgetReceiver.icon] = weatherIcon
-                            this[WeatherWidgetReceiver.temp] = weatherTemp
-                            this[WeatherWidgetReceiver.name] = locationName
-                            this[WeatherWidgetReceiver.max] = todayMax
-                            this[WeatherWidgetReceiver.min] = todayMin
+                            this[WeatherWidgetReceiver.locationName] = locationName
+                            this[WeatherWidgetReceiver.weatherIcon] = weatherIcon
+                            this[WeatherWidgetReceiver.weatherTemp] = weatherTemp
+                            this[WeatherWidgetReceiver.todayMax] = todayMax
+                            this[WeatherWidgetReceiver.todayMin] = todayMin
+                            this[WeatherWidgetReceiver.description] = description
                         }
                     }
                 }
