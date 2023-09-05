@@ -46,17 +46,19 @@ class HomeViewModel @Inject constructor(
     private val workerScope =
         viewModelScope + coroutineExceptionHandler
 
+
+    init {
+        getSettings()
+    }
+
+    private fun getSettings() = workerScope.launch(Dispatchers.IO) {
+        _settings.value = databaseUseCase.getSettings()
+    }
+
     fun getWeatherInfo(
         lat: Double, lon: Double
     ) = workerScope.launch(Dispatchers.IO) {
-        _settings.value = databaseUseCase.getSettings()
         val units = settings?.get("UNITS").toString()
-        fetchWeatherInfo(lat, lon, units)
-    }
-
-    private fun fetchWeatherInfo(
-        lat: Double, lon: Double, units: String
-    ) = workerScope.launch(Dispatchers.IO) {
         val weatherInfo = networkUseCase.getWeatherInfo(lat, lon, units).firstOrNull()
         val locationInfo = networkUseCase.getReverseGeocoding(lat, lon).firstOrNull()
         if (weatherInfo != null && locationInfo != null) {
