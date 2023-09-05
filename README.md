@@ -1,3 +1,3 @@
 # weatherApp
 
-simple weatherapp using jetpack compose
+Simple weather app using Jetpack Compose
