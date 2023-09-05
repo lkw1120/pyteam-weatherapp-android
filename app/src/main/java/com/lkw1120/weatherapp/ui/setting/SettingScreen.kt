@@ -31,8 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.lkw1120.weatherapp.common.AppStrings
-import com.lkw1120.weatherapp.ui.component.CircularProgressBar
-
 
 @Composable
 fun SettingsScreen(
@@ -102,7 +100,7 @@ fun SettingContent(
 ) {
     when (currentState) {
         is SettingScreenState.Loading -> {
-            CircularProgressBar()
+
         }
 
         is SettingScreenState.Success -> {

@@ -7,29 +7,34 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonParser
 import com.lkw1120.weatherapp.R
 import com.lkw1120.weatherapp.common.AppStrings
-import com.lkw1120.weatherapp.ui.component.CircularProgressBar
 import com.lkw1120.weatherapp.ui.location.LocationState
 import com.lkw1120.weatherapp.ui.location.LocationViewModel
+import com.lkw1120.weatherapp.ui.theme.LightBlue700
 import com.lkw1120.weatherapp.ui.theme.WeatherAppTheme
 import java.util.Locale
 
@@ -82,9 +87,11 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(it)
         ) {
-            HomeContent(homeScreenState) {
-                activity?.finish()
-            }
+            HomeContent(
+                homeScreenState,
+                { locationViewModel.loadLocation() },
+                { activity?.finish() },
+            )
         }
     }
 }
@@ -131,42 +138,42 @@ fun BackgroundImage(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeContent(
     currentState: HomeScreenState,
+    onRefreshCallback: () -> Unit,
     errorOnClick: () -> Unit
 ) {
 
-
-    when (currentState) {
-        is HomeScreenState.Loading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment
-                    .Center
-            ) {
-                CircularProgressBar(
-                    modifier = Modifier
-                        .size(LocalConfiguration.current.screenWidthDp.dp / 3)
-                )
-            }
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            onRefreshCallback()
         }
+    )
 
-        is HomeScreenState.Success -> {
-            if (currentState.weatherInfo != null && currentState.locationInfo != null) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(refreshState),
+        contentAlignment = Alignment.TopCenter
+    ) {
 
-                val context = LocalContext.current
-                val weatherInfo = currentState.weatherInfo
-                val locationInfo = currentState.locationInfo
-                val units = currentState.units
-
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                ) {
-                    val scrollState = rememberScrollState()
+        when (currentState) {
+            is HomeScreenState.Loading -> {
+                isRefreshing = true
+            }
+            is HomeScreenState.Success -> {
+                isRefreshing = false
+                if (currentState.weatherInfo != null && currentState.locationInfo != null) {
+                    val weatherInfo = currentState.weatherInfo
+                    val locationInfo = currentState.locationInfo
+                    val units = currentState.units
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -189,21 +196,16 @@ fun HomeContent(
                     }
                 }
             }
-        }
-
-        is HomeScreenState.Error -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment
-                    .Center
-            ) {
-                CircularProgressBar(
-                    modifier = Modifier
-                        .size(LocalConfiguration.current.screenWidthDp.dp / 3)
-                )
+            is HomeScreenState.Error -> {
+                isRefreshing = false
             }
         }
+        PullRefreshIndicator(
+            modifier = Modifier,
+            refreshing = isRefreshing,
+            state = refreshState,
+            contentColor = LightBlue700
+        )
     }
 }
 

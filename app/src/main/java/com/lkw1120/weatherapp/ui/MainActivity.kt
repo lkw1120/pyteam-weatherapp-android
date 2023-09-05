@@ -69,11 +69,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    override fun onRestart() {
-        super.onRestart()
-        checkPermission()
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         if (serviceIntent != null) {
