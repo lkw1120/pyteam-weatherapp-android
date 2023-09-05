@@ -1,2 +1,3 @@
-# pyteam-weatherapp-android
-WeatherApp
+# weatherApp
+
+simple weatherapp using jetpack compose
