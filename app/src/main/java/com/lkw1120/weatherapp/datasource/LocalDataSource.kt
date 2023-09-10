@@ -1,6 +1,5 @@
 package com.lkw1120.weatherapp.datasource
 
-import android.content.Context
 import com.lkw1120.weatherapp.datasource.local.AppDataStore
 import com.lkw1120.weatherapp.datasource.local.AppDatabase
 import com.lkw1120.weatherapp.datasource.local.entity.LocationEntity
@@ -13,35 +12,25 @@ interface LocalDataSource {
 
     suspend fun setFirstLoad()
 
-    suspend fun getLastLocation(): Map<String, Double>
-
-    suspend fun setLastLocation(lat: Double, lon: Double)
-
     suspend fun getSettings(): Map<String, String>
 
     suspend fun updateUnits(units: String)
 
     suspend fun getDatabase(): AppDatabase
 
-    suspend fun getLocationInfo(): List<LocationEntity>
-
-    suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationEntity
+    suspend fun getLocationInfo(): LocationEntity
 
     suspend fun updateLocationInfo(entity: LocationEntity)
 
-    suspend fun getWeatherInfo(): List<WeatherEntity>
-
-    suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherEntity
+    suspend fun getWeatherInfo(): WeatherEntity
 
     suspend fun updateWeatherInfo(entity: WeatherEntity)
 }
 
 class LocalDataSourceImpl @Inject constructor(
-    private val context: Context
+    private val appDatabase: AppDatabase,
+    private val appDataStore: AppDataStore
 ) : LocalDataSource {
-
-    private val appDataStore = AppDataStore.getDataStore(context)
-    private val appDatabase = AppDatabase.getDatabase(context)
 
 
     override suspend fun getFirstLoad(): Boolean {
@@ -50,14 +39,6 @@ class LocalDataSourceImpl @Inject constructor(
 
     override suspend fun setFirstLoad() {
         appDataStore.setFirstLoad()
-    }
-
-    override suspend fun getLastLocation(): Map<String, Double> {
-        return appDataStore.getLastLocation()
-    }
-
-    override suspend fun setLastLocation(lat: Double, lon: Double) {
-        appDataStore.setLastLocation(lat, lon)
     }
 
     override suspend fun getSettings(): Map<String, String> {
@@ -72,24 +53,16 @@ class LocalDataSourceImpl @Inject constructor(
         return appDatabase
     }
 
-    override suspend fun getLocationInfo(): List<LocationEntity> {
+    override suspend fun getLocationInfo(): LocationEntity {
         return appDatabase.locationDao().getLocationInfo()
-    }
-
-    override suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationEntity {
-        return appDatabase.locationDao().getLocationInfo(name, lat, lon)
     }
 
     override suspend fun updateLocationInfo(entity: LocationEntity) {
         appDatabase.locationDao().updateLocationInfo(entity)
     }
 
-    override suspend fun getWeatherInfo(): List<WeatherEntity> {
+    override suspend fun getWeatherInfo(): WeatherEntity {
         return appDatabase.weatherDao().getWeatherInfo()
-    }
-
-    override suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherEntity {
-        return appDatabase.weatherDao().getWeatherInfo(name, lat, lon)
     }
 
     override suspend fun updateWeatherInfo(entity: WeatherEntity) {

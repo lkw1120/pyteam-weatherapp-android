@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -17,9 +16,6 @@ object AppDataStore {
 
     private val FIRST_FLAG = booleanPreferencesKey("FIRST_LOAD")
     private val UNITS = stringPreferencesKey("UNITS")
-
-    private val LATITUDE = doublePreferencesKey("LATITUDE")
-    private val LONGITUDE = doublePreferencesKey("LONGITUDE")
 
     fun getDataStore(context: Context): AppDataStore {
         dataStore = context.dataStore
@@ -38,22 +34,6 @@ object AppDataStore {
         dataStore.edit { preferences ->
             preferences[FIRST_FLAG] = true
         }
-    }
-
-    suspend fun setLastLocation(latitude: Double, longitude: Double) {
-        dataStore.edit { preferences ->
-            preferences[LATITUDE] = latitude
-            preferences[LONGITUDE] = longitude
-        }
-    }
-
-    suspend fun getLastLocation(): HashMap<String, Double> {
-        val lastLocation = hashMapOf<String, Double>()
-        dataStore.edit { preferences ->
-            lastLocation["latitude"] = preferences[LATITUDE]!!
-            lastLocation["longitude"] = preferences[LONGITUDE]!!
-        }
-        return lastLocation
     }
 
     suspend fun getSettings(): HashMap<String, String> {

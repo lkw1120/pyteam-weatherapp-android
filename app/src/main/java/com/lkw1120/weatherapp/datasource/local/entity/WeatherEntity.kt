@@ -12,14 +12,14 @@ data class WeatherEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo("id")
     val id: Long = 0,
-    @ColumnInfo("location_name")
-    val locationName: String,
     @ColumnInfo("latitude")
     val latitude: Double,
     @ColumnInfo("longitude")
     val longitude: Double,
     @ColumnInfo("weather_info")
     val weatherInfo: String,
+    @ColumnInfo(name = "timezone")
+    val timezone: String,
     @ColumnInfo("timestamp")
     val timestamp: Date
 )

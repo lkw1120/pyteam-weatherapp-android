@@ -24,7 +24,7 @@ class SettingViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _settingScreenState: MutableStateFlow<SettingScreenState> =
-        MutableStateFlow(SettingScreenState.Success(null))
+        MutableStateFlow(SettingScreenState.Loading)
     val settingScreenState: StateFlow<SettingScreenState> =
         _settingScreenState.asStateFlow()
 
@@ -37,18 +37,23 @@ class SettingViewModel @Inject constructor(
     private val workerScope =
         viewModelScope + coroutineExceptionHandler
 
-
-    fun getSettings() = workerScope.launch(Dispatchers.IO) {
-        _settingScreenState.emit(SettingScreenState.Success(databaseUseCase.getSettings()))
+    init {
+        workerScope.launch(Dispatchers.IO) {
+            _settingScreenState.value =
+                SettingScreenState.Success(databaseUseCase.getSettings())
+        }
     }
 
     fun updateUnits(units: String) = workerScope.launch(Dispatchers.IO) {
+        _settingScreenState.value =
+            SettingScreenState.Loading
         if (units == UNIT_METRIC) {
             databaseUseCase.updateUnits(UNIT_IMPERIAL)
         } else {
             databaseUseCase.updateUnits(UNIT_METRIC)
         }
-        getSettings()
+        _settingScreenState.value =
+            SettingScreenState.Success(databaseUseCase.getSettings())
     }
 
 

@@ -20,8 +20,6 @@ data class LocationEntity(
     val longitude: Double,
     @ColumnInfo(name = "country")
     val country: String,
-    @ColumnInfo(name = "timezone")
-    val timezone: String,
     @ColumnInfo(name = "location_info")
     val locationInfo: String,
     @ColumnInfo("timestamp")

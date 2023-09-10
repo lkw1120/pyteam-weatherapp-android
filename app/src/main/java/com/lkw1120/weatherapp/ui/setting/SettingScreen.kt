@@ -41,8 +41,6 @@ fun SettingsScreen(
     val currentState by settingViewModel.settingScreenState.collectAsState()
     val activity = (LocalContext.current as? Activity)
 
-    settingViewModel.getSettings()
-
     Scaffold(
         modifier = Modifier
             .background(Color.White)
@@ -55,7 +53,9 @@ fun SettingsScreen(
             modifier = Modifier
                 .padding(it)
         ) {
-            SettingContent(currentState) { units ->
+            SettingContent(
+                currentState = currentState
+            ) { units ->
                 settingViewModel.updateUnits(units)
             }
         }
@@ -104,8 +104,8 @@ fun SettingContent(
         }
 
         is SettingScreenState.Success -> {
-            if (currentState.settings != null) {
-                val settings = currentState.settings
+            val settings = currentState.settings
+            if (settings != null) {
                 SettingSection(
                     modifier = Modifier,
                     settings = settings,
@@ -164,7 +164,7 @@ fun SettingSection(
                 )
                 Text(
                     style = MaterialTheme.typography.bodyLarge,
-                    text = if (settings["UNITS"].toString() == "metric") {
+                    text = if (settings["UNITS"] == "metric") {
                         "Celsius/meter"
                     } else {
                         "Fahrenheit/mile"

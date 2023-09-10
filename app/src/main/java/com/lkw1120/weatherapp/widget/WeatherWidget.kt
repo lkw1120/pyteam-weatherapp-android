@@ -39,12 +39,12 @@ class WeatherWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
 
             WidgetContent(
-                locationName = prefs[WeatherWidgetReceiver.locationName]?: "unknown",
-                weatherIcon = prefs[WeatherWidgetReceiver.weatherIcon]?: "",
-                weatherTemp = prefs[WeatherWidgetReceiver.weatherTemp]?: "--",
-                todayMax = prefs[WeatherWidgetReceiver.todayMax]?: "--",
-                todayMin = prefs[WeatherWidgetReceiver.todayMin]?: "--",
-                description = prefs[WeatherWidgetReceiver.description]?:""
+                locationName = prefs[WeatherWidgetReceiver.locationName] ?: "Unknown",
+                weatherIcon = prefs[WeatherWidgetReceiver.weatherIcon] ?: "",
+                weatherTemp = prefs[WeatherWidgetReceiver.weatherTemp] ?: "--",
+                todayMax = prefs[WeatherWidgetReceiver.todayMax] ?: "--",
+                todayMin = prefs[WeatherWidgetReceiver.todayMin] ?: "--",
+                description = prefs[WeatherWidgetReceiver.description] ?: ""
             )
         }
     }

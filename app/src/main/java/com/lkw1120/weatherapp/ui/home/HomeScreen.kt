@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.JsonParser
 import com.lkw1120.weatherapp.R
 import com.lkw1120.weatherapp.common.AppStrings
+import com.lkw1120.weatherapp.ui.component.ErrorContent
+import com.lkw1120.weatherapp.ui.component.ErrorDialog
 import com.lkw1120.weatherapp.ui.location.LocationState
 import com.lkw1120.weatherapp.ui.location.LocationViewModel
 import com.lkw1120.weatherapp.ui.theme.LightBlue700
@@ -57,17 +59,23 @@ fun HomeScreen(
             is LocationState.Loading -> {
                 homeViewModel.refresh()
             }
+
             is LocationState.Success -> {
-                if ((locationState as LocationState.Success).map != null) {
-                    val map = (locationState as LocationState.Success).map!!
+                val map = (locationState as LocationState.Success).map
+                if (map != null) {
                     homeViewModel.getWeatherInfo(map["lat"] as Double, map["lon"] as Double)
                 }
             }
-            is LocationState.Error -> {
 
+            is LocationState.Error -> {
+                val message = (locationState as LocationState.Error).errorMessage
+                if (message != null) {
+                    homeViewModel.error(message)
+                }
             }
         }
     }
+
 
     Scaffold(
         modifier = Modifier
@@ -80,16 +88,18 @@ fun HomeScreen(
         }
     ) {
 
-        BackgroundImage(homeScreenState)
+        BackgroundImage(
+            currentState = homeScreenState,
+        )
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(it)
         ) {
             HomeContent(
-                homeScreenState,
-                { locationViewModel.loadLocation() },
-                { activity?.finish() },
+                currentState = homeScreenState,
+                onRefreshCallback = { locationViewModel.loadLocation() },
+                onErrorCallback = { activity?.finish() },
             )
         }
     }
@@ -101,8 +111,8 @@ fun BackgroundImage(
 ) {
     val backgroundResource = when (currentState) {
         is HomeScreenState.Success -> {
-            if (currentState.weatherInfo != null) {
-                val weatherInfo = currentState.weatherInfo
+            val weatherInfo = currentState.weatherInfo
+            if (weatherInfo != null) {
                 val current = weatherInfo.weatherData?.current!!
                 val sunrise = current.sunrise!!
                 val sunset = current.sunset!!
@@ -142,12 +152,12 @@ fun BackgroundImage(
 fun HomeContent(
     currentState: HomeScreenState,
     onRefreshCallback: () -> Unit,
-    errorOnClick: () -> Unit
+    onErrorCallback: () -> Unit
 ) {
 
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var isRefreshing by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(true) }
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
@@ -167,12 +177,13 @@ fun HomeContent(
             is HomeScreenState.Loading -> {
                 isRefreshing = true
             }
+
             is HomeScreenState.Success -> {
                 isRefreshing = false
-                if (currentState.weatherInfo != null && currentState.locationInfo != null) {
-                    val weatherInfo = currentState.weatherInfo
-                    val locationInfo = currentState.locationInfo
-                    val units = currentState.units
+                val weatherInfo = currentState.weatherInfo
+                val locationInfo = currentState.locationInfo
+                val units = currentState.units
+                if (weatherInfo != null && locationInfo != null) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -195,8 +206,18 @@ fun HomeContent(
                     }
                 }
             }
+
             is HomeScreenState.Error -> {
-                isRefreshing = false
+                val message = currentState.errorMessage
+                if (message != null) {
+                    ErrorDialog {
+                        ErrorContent(
+                            message = message,
+                            onRefresh = { onRefreshCallback() },
+                            exit = { onErrorCallback() }
+                        )
+                    }
+                }
             }
         }
         PullRefreshIndicator(
@@ -217,16 +238,15 @@ private fun HomeAppBarSection(
     var isNightMode = false
     val title = when (currentState) {
         is HomeScreenState.Success -> {
-            if (currentState.weatherInfo != null && currentState.locationInfo != null) {
-                val locationInfo = currentState.locationInfo
+            val locationInfo = currentState.locationInfo
+            if (locationInfo != null) {
                 val json = JsonParser().parse(locationInfo.raw)
                 val location = json.asJsonArray.get(0)?.asJsonObject ?: throw Exception()
                 val localNames = location.get("local_names")?.asJsonObject ?: throw Exception()
                 val locationName = localNames.get(Locale.getDefault().language)?.asString
                     ?: location.get("name")?.asString ?: AppStrings.unknown
 
-                val weatherInfo = currentState.weatherInfo
-                weatherInfo.weatherData?.current?.let {
+                currentState.weatherInfo?.weatherData?.current?.let {
                     isNightMode = !(it.sunrise!! <= it.dt!! && it.dt < it.sunset!!)
                 }
                 locationName

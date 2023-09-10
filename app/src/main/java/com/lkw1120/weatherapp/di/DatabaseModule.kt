@@ -5,6 +5,8 @@ import com.lkw1120.weatherapp.datasource.LocalDataSource
 import com.lkw1120.weatherapp.datasource.LocalDataSourceImpl
 import com.lkw1120.weatherapp.datasource.RemoteDataSource
 import com.lkw1120.weatherapp.datasource.RemoteDataSourceImpl
+import com.lkw1120.weatherapp.datasource.local.AppDataStore
+import com.lkw1120.weatherapp.datasource.local.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,10 +20,26 @@ class DatabaseModule {
 
     @Singleton
     @Provides
+    fun provideAppDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase = AppDatabase.getDatabase(context)
+
+    @Singleton
+    @Provides
+    fun provideAppDataStore(
+        @ApplicationContext context: Context
+    ): AppDataStore = AppDataStore.getDataStore(context)
+
+    @Singleton
+    @Provides
     fun provideLocalDataSource(
-        @ApplicationContext appContext: Context
+        appDatabase: AppDatabase,
+        appDatastore: AppDataStore,
     ): LocalDataSource {
-        return LocalDataSourceImpl(appContext)
+        return LocalDataSourceImpl(
+            appDatabase = appDatabase,
+            appDataStore = appDatastore
+        )
     }
 
     @Singleton

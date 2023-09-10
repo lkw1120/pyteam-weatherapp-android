@@ -20,7 +20,6 @@ import com.lkw1120.weatherapp.widget.WeatherWidgetReceiver
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
@@ -57,54 +56,56 @@ class WeatherWorker @AssistedInject constructor(
         location?.let {
             val lat = it.latitude
             val lon = it.longitude
-            val units = settings["UNITS"] ?: "metric"
+            val units = settings?.get("UNITS") ?: "metric"
 
-            val weatherInfo = withContext(Dispatchers.IO) {
-                networkUseCase.getWeatherInfo(lat, lon, units).firstOrNull()
+            withContext(Dispatchers.IO) {
+                networkUseCase.getReverseGeocoding(lat, lon).collect { locationInfo ->
+                    databaseUseCase.updateLocationInfo(locationInfo)
+                }
             }
-            val locationInfo = withContext(Dispatchers.IO) {
-                networkUseCase.getReverseGeocoding(lat, lon).firstOrNull()
+            withContext(Dispatchers.IO) {
+                networkUseCase.getWeatherInfo(lat, lon, units).collect { weatherInfo ->
+                    databaseUseCase.updateWeatherInfo(weatherInfo)
+                }
             }
-            if (weatherInfo != null && locationInfo != null) {
-                Timber.tag(TAG).d("weatherInfo : %s", weatherInfo.raw)
-                Timber.tag(TAG).d("locationInfo : %s", locationInfo.raw)
+            val locationInfo = databaseUseCase.getLocationInfo()
+            val weatherInfo = databaseUseCase.getWeatherInfo()
 
-                val weatherIcon = weatherInfo.weatherData?.current?.weather?.get(0)?.icon ?: ""
-                val description = weatherInfo.weatherData?.current?.weather?.get(0)?.description?:""
-                val weatherTemp =
-                    weatherInfo.weatherData?.current?.temp?.toInt()?.toString() ?: "--"
+            val weatherIcon = weatherInfo.weatherData?.current?.weather?.get(0)?.icon ?: ""
+            val description = weatherInfo.weatherData?.current?.weather?.get(0)?.description ?: ""
+            val weatherTemp =
+                weatherInfo.weatherData?.current?.temp?.toInt()?.toString() ?: "--"
 
-                val temp = weatherInfo.weatherData?.daily?.get(0)?.temp
-                val todayMax = temp?.max?.toInt()?.toString() ?: "--"
-                val todayMin = temp?.min?.toInt()?.toString() ?: "--"
+            val temp = weatherInfo.weatherData?.daily?.get(0)?.temp
+            val todayMax = temp?.max?.toInt()?.toString() ?: "--"
+            val todayMin = temp?.min?.toInt()?.toString() ?: "--"
 
-                val json = JsonParser().parse(locationInfo.raw)
-                val location = json.asJsonArray.get(0)?.asJsonObject ?: throw Exception()
-                val localNames = location.get("local_names")?.asJsonObject ?: throw Exception()
-                val locationName = localNames.get(Locale.getDefault().language)?.asString
-                    ?: location.get("name")?.asString ?: AppStrings.unknown
+            val json = JsonParser().parse(locationInfo.raw)
+            val location = json.asJsonArray.get(0)?.asJsonObject ?: throw Exception()
+            val localNames = location.get("local_names")?.asJsonObject ?: throw Exception()
+            val locationName = localNames.get(Locale.getDefault().language)?.asString
+                ?: location.get("name")?.asString ?: AppStrings.unknown
 
-                val glanceId =
-                    GlanceAppWidgetManager(context).getGlanceIds(WeatherWidget::class.java)
+            val glanceId =
+                GlanceAppWidgetManager(context).getGlanceIds(WeatherWidget::class.java)
 
-                glanceId.forEach {
-                    updateAppWidgetState(
-                        context,
-                        PreferencesGlanceStateDefinition,
-                        it
-                    ) { pref ->
-                        pref.toMutablePreferences().apply {
-                            this[WeatherWidgetReceiver.locationName] = locationName
-                            this[WeatherWidgetReceiver.weatherIcon] = weatherIcon
-                            this[WeatherWidgetReceiver.weatherTemp] = weatherTemp
-                            this[WeatherWidgetReceiver.todayMax] = todayMax
-                            this[WeatherWidgetReceiver.todayMin] = todayMin
-                            this[WeatherWidgetReceiver.description] = description
-                        }
+            glanceId.forEach {
+                updateAppWidgetState(
+                    context,
+                    PreferencesGlanceStateDefinition,
+                    it
+                ) { pref ->
+                    pref.toMutablePreferences().apply {
+                        this[WeatherWidgetReceiver.locationName] = locationName
+                        this[WeatherWidgetReceiver.weatherIcon] = weatherIcon
+                        this[WeatherWidgetReceiver.weatherTemp] = weatherTemp
+                        this[WeatherWidgetReceiver.todayMax] = todayMax
+                        this[WeatherWidgetReceiver.todayMin] = todayMin
+                        this[WeatherWidgetReceiver.description] = description
                     }
                 }
-                WeatherWidget().updateAll(context)
             }
+            WeatherWidget().updateAll(context)
         } ?: throw Exception("location not found")
         Result.success()
     } catch (ex: Exception) {

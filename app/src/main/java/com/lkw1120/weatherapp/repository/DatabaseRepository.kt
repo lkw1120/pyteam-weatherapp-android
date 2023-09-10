@@ -11,23 +11,15 @@ interface DatabaseRepository {
 
     suspend fun setFirstLoad()
 
-    suspend fun getLastLocation(): Map<String, Double>
-
-    suspend fun setLastLocation(lat: Double, lon: Double)
-
     suspend fun getSettings(): Map<String, String>
 
     suspend fun updateUnits(units: String)
 
-    suspend fun getLocationInfo(): List<LocationEntity>
-
-    suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationEntity
+    suspend fun getLocationInfo(): LocationEntity
 
     suspend fun updateLocationInfo(entity: LocationEntity)
 
-    suspend fun getWeatherInfo(): List<WeatherEntity>
-
-    suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherEntity
+    suspend fun getWeatherInfo(): WeatherEntity
 
     suspend fun updateWeatherInfo(entity: WeatherEntity)
 }
@@ -44,14 +36,6 @@ class DatabaseRepositoryImpl @Inject constructor(
         localDataSource.setFirstLoad()
     }
 
-    override suspend fun getLastLocation(): Map<String, Double> {
-        return localDataSource.getLastLocation()
-    }
-
-    override suspend fun setLastLocation(lat: Double, lon: Double) {
-        localDataSource.setLastLocation(lat, lon)
-    }
-
     override suspend fun getSettings(): Map<String, String> {
         return localDataSource.getSettings()
     }
@@ -60,24 +44,16 @@ class DatabaseRepositoryImpl @Inject constructor(
         return localDataSource.updateUnits(units)
     }
 
-    override suspend fun getLocationInfo(): List<LocationEntity> {
+    override suspend fun getLocationInfo(): LocationEntity {
         return localDataSource.getLocationInfo()
-    }
-
-    override suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationEntity {
-        return localDataSource.getLocationInfo(name, lat, lon)
     }
 
     override suspend fun updateLocationInfo(entity: LocationEntity) {
         localDataSource.updateLocationInfo(entity)
     }
 
-    override suspend fun getWeatherInfo(): List<WeatherEntity> {
+    override suspend fun getWeatherInfo(): WeatherEntity {
         return localDataSource.getWeatherInfo()
-    }
-
-    override suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherEntity {
-        return localDataSource.getWeatherInfo(name, lat, lon)
     }
 
     override suspend fun updateWeatherInfo(entity: WeatherEntity) {

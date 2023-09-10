@@ -4,7 +4,7 @@ import com.lkw1120.weatherapp.usecase.model.geo.LocationInfo
 import com.lkw1120.weatherapp.usecase.model.weather.WeatherInfo
 
 sealed interface HomeScreenState {
-    object Loading : HomeScreenState
+    data object Loading : HomeScreenState
 
     data class Success(
         val weatherInfo: WeatherInfo?,

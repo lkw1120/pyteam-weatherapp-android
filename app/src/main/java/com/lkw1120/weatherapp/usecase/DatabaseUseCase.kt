@@ -11,7 +11,6 @@ import com.lkw1120.weatherapp.usecase.model.geo.LocationData
 import com.lkw1120.weatherapp.usecase.model.geo.LocationInfo
 import com.lkw1120.weatherapp.usecase.model.weather.WeatherData
 import com.lkw1120.weatherapp.usecase.model.weather.WeatherInfo
-import timber.log.Timber
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
@@ -22,23 +21,18 @@ interface DatabaseUseCase {
 
     suspend fun setFirstLoad()
 
-    suspend fun getLastLocation(): Map<String, Double>
-
-    suspend fun setLastLocation(lat: Double, lon: Double)
-
     suspend fun getSettings(): Map<String, String>
 
     suspend fun updateUnits(units: String)
 
-    suspend fun getLocationInfo(): List<LocationInfo>
+    suspend fun getLocationInfo(): LocationInfo
 
-    suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationInfo
+    suspend fun getWeatherInfo(): WeatherInfo
 
-    suspend fun getWeatherInfo(): List<WeatherInfo>
+    suspend fun updateLocationInfo(locationInfo: LocationInfo)
 
-    suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherInfo
+    suspend fun updateWeatherInfo(weatherInfo: WeatherInfo)
 
-    suspend fun updateWeatherData(weatherInfo: WeatherInfo, locationInfo: LocationInfo)
 }
 
 class DatabaseUseCaseImpl @Inject constructor(
@@ -53,14 +47,6 @@ class DatabaseUseCaseImpl @Inject constructor(
         databaseRepository.setFirstLoad()
     }
 
-    override suspend fun getLastLocation(): Map<String, Double> {
-        return databaseRepository.getLastLocation()
-    }
-
-    override suspend fun setLastLocation(lat: Double, lon: Double) {
-        databaseRepository.setLastLocation(lat, lon)
-    }
-
     override suspend fun getSettings(): Map<String, String> {
         return databaseRepository.getSettings()
     }
@@ -69,54 +55,29 @@ class DatabaseUseCaseImpl @Inject constructor(
         return databaseRepository.updateUnits(units)
     }
 
-    override suspend fun getLocationInfo(): List<LocationInfo> {
-        return databaseRepository.getLocationInfo()
-            .map {
-                val locationData = GsonBuilder().serializeNulls().create()
-                    .fromJson(it.locationInfo, LocationData::class.java)
-                LocationInfo(
-                    locationData = locationData,
-                    raw = it.locationInfo
-                )
-            }
+    override suspend fun getLocationInfo(): LocationInfo {
+        return databaseRepository.getLocationInfo().let { result ->
+            val locationData = GsonBuilder().serializeNulls().create()
+                .fromJson(result.locationInfo, LocationData::class.java)
+            LocationInfo(
+                locationData = locationData,
+                raw = result.locationInfo
+            )
+        }
     }
 
-    override suspend fun getLocationInfo(name: String, lat: Double, lon: Double): LocationInfo {
-        val result = databaseRepository.getLocationInfo(name, lat, lon)
-        Timber.d("getLocationInfo : $result")
-        val locationData = GsonBuilder().serializeNulls().create()
-            .fromJson(result.locationInfo, LocationData::class.java)
-        return LocationInfo(
-            locationData = locationData,
-            raw = result.locationInfo
-        )
+    override suspend fun getWeatherInfo(): WeatherInfo {
+        return databaseRepository.getWeatherInfo().let { result ->
+            val weatherData = GsonBuilder().serializeNulls().create()
+                .fromJson(result.weatherInfo, WeatherData::class.java)
+            WeatherInfo(
+                weatherData = weatherData,
+                raw = result.weatherInfo
+            )
+        }
     }
 
-    override suspend fun getWeatherInfo(): List<WeatherInfo> {
-        return databaseRepository.getWeatherInfo()
-            .map {
-                val weatherData = GsonBuilder().serializeNulls().create()
-                    .fromJson(it.weatherInfo, WeatherData::class.java)
-                WeatherInfo(
-                    weatherData = weatherData,
-                    raw = it.weatherInfo
-                )
-            }
-    }
-
-    override suspend fun getWeatherInfo(name: String, lat: Double, lon: Double): WeatherInfo {
-        val result = databaseRepository.getWeatherInfo(name, lat, lon)
-        Timber.d("getWeatherInfo : $result")
-        val weatherData = GsonBuilder().serializeNulls().create()
-            .fromJson(result.weatherInfo, WeatherData::class.java)
-        return WeatherInfo(
-            weatherData = weatherData,
-            raw = result.weatherInfo
-        )
-    }
-
-    override suspend fun updateWeatherData(
-        weatherInfo: WeatherInfo,
+    override suspend fun updateLocationInfo(
         locationInfo: LocationInfo
     ) {
         val json = JsonParser().parse(locationInfo.raw)
@@ -126,32 +87,41 @@ class DatabaseUseCaseImpl @Inject constructor(
             localNames.get(Locale.getDefault().language)?.asString ?: location.get("name")?.asString
             ?: AppStrings.unknown
 
-        val latitude = weatherInfo.weatherData?.lat!!
-        val longitude = weatherInfo.weatherData?.lon!!
+        val latitude = locationInfo.locationData?.get(0)?.lat!!
+        val longitude = locationInfo.locationData?.get(0)?.lon!!
         val timestamp = Date()
         val country = location?.get("country")?.asString ?: Locale.getDefault().country
-        val timezone = weatherInfo.weatherData?.timezone!!
 
-        val weatherEntity = WeatherEntity(
-            id = 0,
-            locationName = locationName,
-            latitude = latitude,
-            longitude = longitude,
-            weatherInfo = Gson().toJson(weatherInfo.weatherData),
-            timestamp = timestamp
-        )
+
         val locationEntity = LocationEntity(
             id = 0,
             locationName = locationName,
             latitude = latitude,
             longitude = longitude,
             country = country,
-            timezone = timezone,
             locationInfo = Gson().toJson(locationInfo.locationData),
             timestamp = timestamp
         )
-        databaseRepository.updateWeatherInfo(weatherEntity)
         databaseRepository.updateLocationInfo(locationEntity)
+    }
+
+    override suspend fun updateWeatherInfo(
+        weatherInfo: WeatherInfo
+    ) {
+
+        val latitude = weatherInfo.weatherData?.lat!!
+        val longitude = weatherInfo.weatherData?.lon!!
+        val timestamp = Date()
+        val timezone = weatherInfo.weatherData?.timezone!!
+        val weatherEntity = WeatherEntity(
+            id = 0,
+            latitude = latitude,
+            longitude = longitude,
+            weatherInfo = Gson().toJson(weatherInfo.weatherData),
+            timezone = timezone,
+            timestamp = timestamp
+        )
+        databaseRepository.updateWeatherInfo(weatherEntity)
     }
 
 }
